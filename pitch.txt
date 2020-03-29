@@ -1,4 +1,0 @@
-Juntos, un equipo de programadores desarrollamos un sistema
-de detección para el COVID-19 utilizando inteligencia artificial.
-El mismo tiene un certeza del 98% de los cosos. [LINK] tiene toda la información
-del funcionamiento.
