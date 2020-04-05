@@ -43,13 +43,15 @@ def predict():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
+            print('[INFO] reading file ...')
             # read image directly from post request
             # https://stackoverflow.com/questions/58082051/how-to-convert-image-file-object-to-numpy-array-in-with-opencv-python
             file_data = request.files['file'].read()
-            data = cv2.imdecode(np.fromstring(file_data, np.uint8), cv2.IMREAD_COLOR)
+            data = cv2.imdecode(np.frombuffer(file_data, np.uint8), cv2.IMREAD_COLOR)
             norm_data = normalize_image(data)
             # result is [postive_prob , negative_prob]
             try:
+
                 json_response = serve_prediciton(norm_data)
                 predictions = np.array(json.loads(json_response.text)['predictions'])
                 # create result
@@ -58,8 +60,9 @@ def predict():
                     "negative": predictions[0,1]
                 }
                 return  result.__str__()
-            except Exception:
-                return Response(status=400)
+            except Exception as e:
+                print('[ERROR] {}'.format(e))
+                return Response(e, status=400)
         else:
             return '<h1> bad</h1>'
     return '''
@@ -86,7 +89,8 @@ def normalize_image(data):
     return inputX
 
 def serve_prediciton(data):
-    HOST_ADDRESS = os.getenv('HOST_ADDRESS')
+    print('[INFO] going to ask the Model ...')
+    HOST_ADDRESS = '192.168.5.101' #os.getenv('HOST_ADDRESS')
     HOST_PORT = os.getenv('HOST_PORT')
 
     data = json.dumps({"signature_name": "serving_default", "instances": data.tolist()})
@@ -97,4 +101,4 @@ def serve_prediciton(data):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=80)
