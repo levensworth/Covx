@@ -12,7 +12,7 @@ Please do not fully trust this model! we are constntly working on improvments.
 
 
 # How to serve a model ?
-## dumy setp by setp guide.
+## dummy setp by setp guide.
 - Install docker image `docker pull tensorflow/serving`
 - `git clone https://github.com/santiagobassani96/Covx.git`
 - `cd Covx`
