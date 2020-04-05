@@ -12,13 +12,15 @@ Please do not fully trust this model! we are constntly working on improvments.
 
 
 # How to serve a model ?
-## dumy setp by setp guide.
+## dummy step by step guide.
 - Install docker image `docker pull tensorflow/serving`
 - `git clone https://github.com/santiagobassani96/Covx.git`
 - `cd Covx`
 - `MODEL_PATH="$(pwd)/models/servable"`
 - `docker run -t --rm -p 8501:8501 -v "$TESTDATA:/models/my_model" -e MODEL_NAME=my_model tensorflow/serving &`
 - At this poit you should see the model is up and runing
+- To use this model:
+- Run `./run_server.sh` this will start the flask app to interact with the model.
 
 
 ## Requirements:
