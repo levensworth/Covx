@@ -1,11 +1,16 @@
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, Response
 from werkzeug.utils import secure_filename
-import infer
+
 import cv2
 import os
 import json
-
 import numpy as np
+import requests
+
+
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -38,22 +43,23 @@ def predict():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-
-
-            model = infer.get_model('models/covid19.model')
             # read image directly from post request
             # https://stackoverflow.com/questions/58082051/how-to-convert-image-file-object-to-numpy-array-in-with-opencv-python
             file_data = request.files['file'].read()
             data = cv2.imdecode(np.fromstring(file_data, np.uint8), cv2.IMREAD_COLOR)
-            norm_data = infer.normalize_image(data)
+            norm_data = normalize_image(data)
             # result is [postive_prob , negative_prob]
-            result = model.predict(norm_data)[0]
-            # create result
-            result = {
-                "positive": result[0],
-                "negative": result[1]
-            }
-            return  result.__str__()
+            try:
+                json_response = serve_prediciton(norm_data)
+                predictions = np.array(json.loads(json_response.text)['predictions'])
+                # create result
+                result = {
+                    "positive": predictions[0,0],
+                    "negative": predictions[0,1]
+                }
+                return  result.__str__()
+            except Exception:
+                return Response(status=400)
         else:
             return '<h1> bad</h1>'
     return '''
@@ -65,6 +71,30 @@ def predict():
       <input type=submit value=Upload>
     </form>
     '''
+
+def normalize_image(data):
+    # normalize input
+    # load the image, swap color channels, and resize it to be a fixed
+    # 224x224 pixels while ignoring aspect ratio
+    image = data
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(image, (224, 224))
+
+    inputX = []
+    inputX.append(image)
+    inputX = np.array(inputX)/255.0
+    return inputX
+
+def serve_prediciton(data):
+    HOST_ADDRESS = os.getenv('HOST_ADDRESS')
+    HOST_PORT = os.getenv('HOST_PORT')
+
+    data = json.dumps({"signature_name": "serving_default", "instances": data.tolist()})
+    headers = {"content-type": "application/json"}
+    json_response = requests.post('http://{}:{}/v1/models/my_model:predict'.format(HOST_ADDRESS, HOST_PORT), data=data, headers=headers)
+
+    return json_response
+
 
 if __name__ == '__main__':
     app.run()

@@ -1,4 +1,8 @@
 import argparse
+from dotenv import load_dotenv, find_dotenv
+
+
+load_dotenv(find_dotenv())
 
 def get_args():
     # construct the argument parser and parse the arguments

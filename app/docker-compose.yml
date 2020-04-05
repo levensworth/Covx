@@ -1,0 +1,7 @@
+# docker-compose.yml
+version: "3.2"
+services:
+  app:
+    build: . # Current directory!
+    ports:
+      - "5001:5000"
