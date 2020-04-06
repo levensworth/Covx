@@ -1,6 +1,6 @@
 from flask import Flask, flash, request, redirect, url_for, Response
 from werkzeug.utils import secure_filename
-
+from flask_cors import CORS, cross_origin
 import cv2
 import os
 import json
@@ -16,6 +16,8 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
@@ -29,6 +31,7 @@ def heart_beat():
 
 
 @app.route('/', methods=['GET', 'POST'])
+@cross_origin()
 def predict():
     if request.method == 'POST':
         # check if the post request has the file part
@@ -59,7 +62,12 @@ def predict():
                     "positive": predictions[0,0],
                     "negative": predictions[0,1]
                 }
-                return  result.__str__()
+                response = app.response_class(
+                    response=json.dumps(data),
+                    status=200,
+                    mimetype='application/json'
+                )
+                return response
             except Exception as e:
                 print('[ERROR] {}'.format(e))
                 return Response(e, status=400)
@@ -90,7 +98,7 @@ def normalize_image(data):
 
 def serve_prediciton(data):
     print('[INFO] going to ask the Model ...')
-    HOST_ADDRESS = '192.168.5.101' #os.getenv('HOST_ADDRESS')
+    HOST_ADDRESS = os.getenv('HOST_ADDRESS')
     HOST_PORT = os.getenv('HOST_PORT')
 
     data = json.dumps({"signature_name": "serving_default", "instances": data.tolist()})
