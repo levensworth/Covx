@@ -62,26 +62,37 @@ def predict():
                     "positive": predictions[0,0],
                     "negative": predictions[0,1]
                 }
+
                 response = app.response_class(
-                    response=json.dumps(data),
+                    response=json.dumps(result),
                     status=200,
                     mimetype='application/json'
                 )
                 return response
+
+            
+            except requests.exceptions.HTTPError as errh:
+                print ("Http Error:",errh)
+                return Response(e, status=429)
+
+            except requests.exceptions.ConnectionError as errc:
+                print ("Error Connecting:",errc)
+                return Response(e, status=503)
+
+            except requests.exceptions.Timeout as errt:
+                print ("Timeout Error:",errt)
+                return Response(e, status=408)
+
+            except requests.exceptions.RequestException as err:
+                print ("OOps: Something Else",err)
+                return Response(e, status=507)
+
             except Exception as e:
                 print('[ERROR] {}'.format(e))
                 return Response(e, status=400)
         else:
-            return '<h1> bad</h1>'
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
+            return Response('Not supported', status=415)
+    return Response(None, status=403)
 
 def normalize_image(data):
     # normalize input
@@ -100,13 +111,24 @@ def serve_prediciton(data):
     print('[INFO] going to ask the Model ...')
     HOST_ADDRESS = os.getenv('HOST_ADDRESS')
     HOST_PORT = os.getenv('HOST_PORT')
+    try:
+        data = json.dumps({"signature_name": "serving_default", "instances": data.tolist()})
+        headers = {"content-type": "application/json"}
+        json_response = requests.post('http://{}:{}/v1/models/my_model:predict'.format(HOST_ADDRESS, HOST_PORT), data=data, headers=headers)
 
-    data = json.dumps({"signature_name": "serving_default", "instances": data.tolist()})
-    headers = {"content-type": "application/json"}
-    json_response = requests.post('http://{}:{}/v1/models/my_model:predict'.format(HOST_ADDRESS, HOST_PORT), data=data, headers=headers)
-
-    return json_response
-
+        return json_response
+    except requests.exceptions.HTTPError as errh:
+        print ("Http Error:",errh)
+        raise errh
+    except requests.exceptions.ConnectionError as errc:
+        print ("Error Connecting:",errc)
+        raise errc
+    except requests.exceptions.Timeout as errt:
+        print ("Timeout Error:",errt)
+        raise errt
+    except requests.exceptions.RequestException as err:
+        print ("OOps: Something Else",err)
+        raise err
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
