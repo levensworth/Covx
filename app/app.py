@@ -70,22 +70,22 @@ def predict():
                 )
                 return response
 
-            
+
             except requests.exceptions.HTTPError as errh:
                 print ("Http Error:",errh)
-                return Response(e, status=429)
+                return Response(errh, status=429)
 
             except requests.exceptions.ConnectionError as errc:
                 print ("Error Connecting:",errc)
-                return Response(e, status=503)
+                return Response(errc, status=503)
 
             except requests.exceptions.Timeout as errt:
                 print ("Timeout Error:",errt)
-                return Response(e, status=408)
+                return Response(errt, status=408)
 
             except requests.exceptions.RequestException as err:
                 print ("OOps: Something Else",err)
-                return Response(e, status=507)
+                return Response(err, status=507)
 
             except Exception as e:
                 print('[ERROR] {}'.format(e))
