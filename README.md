@@ -18,7 +18,7 @@ Please do not fully trust this model! We are constantly working on improvements.
 - `cd Covx`
 - `MODEL_PATH="$(pwd)/models/servable"`
 - `docker run -t --rm -p 8501:8501 -v "$TESTDATA:/models/my_model" -e MODEL_NAME=my_model tensorflow/serving &`
-- At this point you should see the model is up and runing
+- At this point you should see the model is up and running
 - To use this model:
 - Run `./run_server.sh` this will start the flask app to interact with the model.
 
