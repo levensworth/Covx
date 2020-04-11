@@ -62,37 +62,18 @@ def predict():
                     "positive": predictions[0,0],
                     "negative": predictions[0,1]
                 }
-
                 response = app.response_class(
-                    response=json.dumps(result),
+                    response=json.dumps(data),
                     status=200,
                     mimetype='application/json'
                 )
                 return response
-
-
-            except requests.exceptions.HTTPError as errh:
-                print ("Http Error:",errh)
-                return Response(errh, status=429)
-
-            except requests.exceptions.ConnectionError as errc:
-                print ("Error Connecting:",errc)
-                return Response(errc, status=503)
-
-            except requests.exceptions.Timeout as errt:
-                print ("Timeout Error:",errt)
-                return Response(errt, status=408)
-
-            except requests.exceptions.RequestException as err:
-                print ("OOps: Something Else",err)
-                return Response(err, status=507)
-
             except Exception as e:
                 print('[ERROR] {}'.format(e))
                 return Response(e, status=400)
         else:
-            return Response('Not supported', status=415)
-    return Response(None, status=403)
+            return Response(e, status=400)
+    return Response(e, status=403)
 
 def normalize_image(data):
     # normalize input
@@ -111,24 +92,13 @@ def serve_prediciton(data):
     print('[INFO] going to ask the Model ...')
     HOST_ADDRESS = os.getenv('HOST_ADDRESS')
     HOST_PORT = os.getenv('HOST_PORT')
-    try:
-        data = json.dumps({"signature_name": "serving_default", "instances": data.tolist()})
-        headers = {"content-type": "application/json"}
-        json_response = requests.post('http://{}:{}/v1/models/my_model:predict'.format(HOST_ADDRESS, HOST_PORT), data=data, headers=headers)
 
-        return json_response
-    except requests.exceptions.HTTPError as errh:
-        print ("Http Error:",errh)
-        raise errh
-    except requests.exceptions.ConnectionError as errc:
-        print ("Error Connecting:",errc)
-        raise errc
-    except requests.exceptions.Timeout as errt:
-        print ("Timeout Error:",errt)
-        raise errt
-    except requests.exceptions.RequestException as err:
-        print ("OOps: Something Else",err)
-        raise err
+    data = json.dumps({"signature_name": "serving_default", "instances": data.tolist()})
+    headers = {"content-type": "application/json"}
+    json_response = requests.post('http://{}:{}/v1/models/my_model:predict'.format(HOST_ADDRESS, HOST_PORT), data=data, headers=headers)
+
+    return json_response
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)

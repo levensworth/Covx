@@ -1,10 +1,10 @@
 import tensorflow as tf
 from tensorflow import keras
 
-model_path = 'models/covid19_3.model'
+model_path = 'models/covid19_2.model'
 
 model = keras.models.load_model(model_path)
-MODEL_EXPORT_PATH = 'models/servable/2'
+MODEL_EXPORT_PATH = 'models/servable/1'
 
 
 # We'll need to create an input mapping, and name each of the input tensors.
